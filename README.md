@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/downloads/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.68%2B-green)](https://fastapi.tiangolo.com/) [![Docker](https://img.shields.io/badge/Docker-20.10%2B-blue)](https://www.docker.com/products/docker-desktop/) [![JavaScript](https://img.shields.io/badge/JavaScript-ES6%2B-yellow)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
 
-Uma aplicação simples e leve criada para gerenciar e inicializar contêineres Docker de forma dinâmica através de uma interface gráfica. O projeto conta com um frontend minimalista em HTML5/JavaScript e um backend em Python com FastAPI integrado ao CLI do Docker.
+Uma aplicação simples e leve criada para criar contêineres Docker de forma dinâmica através de uma interface gráfica. O projeto conta com um frontend minimalista em HTML5/JavaScript e um backend em Python com FastAPI integrado ao CLI do Docker.
 
 ---
 
