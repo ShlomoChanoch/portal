@@ -1,0 +1,54 @@
+#!/usr/sbin/nft -f
+# Portal egress policy. Provision is copied to /etc/nftables.d/portal.nft;
+# distributions with nftables.service include /etc/nftables.d/*.nft automatically
+# (see RUNBOOK "Apply firewall"). The runner fabric is the only component that
+# routes outward: VCS hosts for clone/fetch, container registries for builds,
+# and DNS. The api talks only to loopback. Deny everything else by default.
+
+table inet portal {
+	chain output {
+		type filter hook output priority filter; policy drop;
+
+		# System + loopback are always allowed.
+		oif "lo" accept
+		ct state established,related accept
+
+		# DNS (resolver may live off-host).
+		udp dport 53 accept
+		tcp dport 53 accept
+
+		# Runner egress: clone/fetch from the allowed VCS hosts.
+		tcp dport 443 ip daddr 140.82.112.0/20 accept    # github.com range
+		tcp dport 443 ip daddr 140.82.113.0/20 accept
+		tcp dport 443 ip daddr 151.101.0.0/16 accept     # gitlab.com + CDN
+		tcp dport 443 ip daddr 104.18.0.0/15 accept
+		tcp dport 443 ip daddr 104.26.0.0/15 accept
+		tcp dport 443 ip daddr 185.199.108.0/22 accept   # github pages/raw
+		tcp dport 443 ip daddr 192.30.252.0/22 accept
+
+		# Container registry + builder traffic.
+		tcp dport 443 ip daddr 142.250.0.0/15 accept     # registry hosts
+		tcp dport 443 ip daddr 172.217.0.0/16 accept
+		tcp dport 443 ip daddr 173.194.0.0/16 accept
+		tcp dport 443 ip daddr 34.107.0.0/16 accept
+		tcp dport 443 ip daddr 34.117.0.0/16 accept
+		tcp dport 443 ip daddr 142.0.0.0/8 accept
+
+		# ICMP for debugging/health from the host perspective (rate limited).
+		icmp type echo-request limit rate 3/second accept
+	}
+
+	chain input {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept
+		ct state established,related accept
+		tcp dport 22 accept      # admin SSH
+		tcp dport 443 accept     # https
+		icmp type echo-request limit rate 10/second accept
+	}
+}
+
+# NOTE: ranges above are illustrative snapshots; verify/resync with your VCS +
+# registry IP sets (e.g. github.com/meta, gitlab.com/meta). For a stricter
+# posture put the runner in a dedicated network namespace and route through a
+# constrained gateway.

@@ -1,0 +1,96 @@
+name: CI Pipeline - Harness Engineering
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # ----------------------------------------------------
+  # 1. BUILD & TEST (Execução paralela/inicial)
+  # ----------------------------------------------------
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+
+      - name: Setup Environment
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python3 -m pip install --only-binary :all: --require-hashes -r requirements.txt
+
+      - name: Run Unit Tests with Coverage
+        run: |
+          # `python -m pytest` (not bare `pytest`), matching Makefile's `test`
+          # target and ops/systemd/*.service: the project is imported from the
+          # repo root, never installed, so the cwd must be on sys.path.
+          python3 -m pytest --cov=. --cov-report=xml:coverage.xml
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
+        with:
+          name: build-assets
+          path: |
+            requirements.txt
+            coverage.xml
+
+  # ----------------------------------------------------
+  # 2. SONARQUBE ANALYSIS (Quality Gate)
+  # ----------------------------------------------------
+  sonarqube:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+        with:
+          fetch-depth: 0
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@7a1cd3216ca9260cd8022db641d960b1db4d1be4
+        with:
+          name: build-assets
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarcloud-github-action@383f7e52eae3ab0510c3cb0e7d9d150bbaeab838
+        with:
+          args: >
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.version=3.13
+            -Dsonar.projectBaseDir=.
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate Check
+        uses: sonarsource/sonarqube-quality-gate-action@d304d050d930b02a896b0f85935344f023928496
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ----------------------------------------------------
+  # 3. TRIVY FS SCAN (Escaneamento de Dependências antes do Build)
+  # ----------------------------------------------------
+  trivy-fs:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          exit-code: '1'
+          severity: 'CRITICAL'
+
+      

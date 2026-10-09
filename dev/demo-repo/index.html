@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Portal demo app</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0b1220; color: #c8d3e0; margin: 0; display: grid; place-items: center; min-height: 100vh; }
+      main { max-width: 560px; padding: 48px 24px; }
+      h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: #2dd4bf; margin: 0 0 8px; }
+      p { line-height: 1.6; }
+      .live { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #34d399; }
+      .live::before { content: ""; width: 8px; height: 8px; border-radius: 9999px; background: #34d399; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="live">running</span>
+      <h1>Hello from Portal</h1>
+      <p>This static site is the bundled demo repo. It exists so the full
+         paste → build → run → URL path can be exercised in dev mode with no
+         network access and no container daemon.</p>
+      <p>A real Repository URL is cloned with <code>git clone</code> in the
+         runner; production builds run through Railpack + rootless BuildKit into
+         rootless Podman (see <code>ops/</code>).</p>
+    </main>
+  </body>
+</html>

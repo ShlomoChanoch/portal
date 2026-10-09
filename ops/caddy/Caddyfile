@@ -1,0 +1,34 @@
+# Portal reverse proxy. In prod the api serves the built SPA from
+# frontend/dist and the /api surface; Caddy terminates TLS and fronts it all,
+# including /api streaming (SSE) endpoints.
+
+portal.example.com {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8000 {
+			# SSE and long-lived log streams must not buffer.
+			flush_interval -1
+		}
+		header -Server
+	}
+
+	handle {
+		# SPA is served by the api app itself; fall through for hash routes.
+		reverse_proxy 127.0.0.1:8000
+	}
+
+	log {
+		output file /var/log/caddy/portal.access.log
+		format json
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+	}
+}
+
+# Optional: OCSP staple / ACME is default in Caddy; add explicit emailing for
+# renewal failures by uncommenting. No further site blocks required.

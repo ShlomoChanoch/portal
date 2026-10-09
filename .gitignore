@@ -1,2 +1,42 @@
-__pycache__
-.venv
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# Portal runtime state (created on boot)
+.portal-data/
+dev_mail.log
+core.*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Env / secrets
+.env
+*.key
+*.pub
+
+# Planning artifacts live outside VCS for now
+.opencode
+docs
+_bmad-output
+api-keys.json
+.ignore
+
+# Editor
+*.swp
+.DS_Store
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+.coverage
+coverage.xml
+

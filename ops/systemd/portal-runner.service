@@ -1,0 +1,30 @@
+[Unit]
+Description=Portal build/run runner (podman)
+Documentation=https://github.com/anomalyco/portal
+After=network-online.target portal-api.service
+Wants=network-online.target
+Requires=portal-api.service
+
+[Service]
+Type=simple
+User=runner
+Group=runner
+WorkingDirectory=/srv/portal
+EnvironmentFile=/etc/portal/runner.env
+ExecStart=/srv/portal/.venv/bin/python -m runner.main
+Restart=always
+RestartSec=3
+# The runner alone holds the runner private key (AD-9). /srv/portal/.portal-data
+# is shared, but the runner.key private half is chmod 0600 runner:runner so the
+# portal (api) user cannot read it.
+UMask=0027
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/srv/portal/.portal-data
+# Home for podman/buildah storage written by the executor.
+Environment=PODMAN_RUNTIME_DIR=/srv/portal/.runtime
+
+[Install]
+WantedBy=multi-user.target

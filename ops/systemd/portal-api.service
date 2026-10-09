@@ -1,0 +1,26 @@
+[Unit]
+Description=Portal control plane (FastAPI)
+Documentation=https://github.com/anomalyco/portal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=portal
+Group=portal
+WorkingDirectory=/srv/portal
+EnvironmentFile=/etc/portal/api.env
+ExecStart=/srv/portal/.venv/bin/python -m api.server
+Restart=always
+RestartSec=3
+# The api holds only encrypting material (runner.key.pub + api.key). The
+# runner's private key must never be readable here (AD-9).
+UMask=0027
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/srv/portal/.portal-data
+
+[Install]
+WantedBy=multi-user.target

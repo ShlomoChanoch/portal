@@ -1,0 +1,1 @@
+"""Adapters — pluggable implementations of the core ports (AD-2)."""

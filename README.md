@@ -1,162 +1,86 @@
-# 🐳 Portal - Docker Container Launcher
+# Portal
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/downloads/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.68%2B-green)](https://fastapi.tiangolo.com/) [![Docker](https://img.shields.io/badge/Docker-20.10%2B-blue)](https://www.docker.com/products/docker-desktop/) [![JavaScript](https://img.shields.io/badge/JavaScript-ES6%2B-yellow)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
+![Podman](https://img.shields.io/badge/Podman-892CA0?logo=podman&logoColor=white)
+![Railpack](https://img.shields.io/badge/Build-Railpack-blue)
+![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)
+[![AI-Assisted Development](https://img.shields.io/badge/Development-AI--Assisted-8A2BE2?logo=openai&logoColor=white)](https://github.com/features/copilot)
 
-Uma aplicação simples e leve criada para criar contêineres Docker de forma dinâmica através de uma interface gráfica. O projeto conta com um frontend minimalista em HTML5/JavaScript e um backend em Python com FastAPI integrado ao CLI do Docker.
+**Cole a URL de um repositório Git e obtenha uma aplicação em execução com uma URL compartilhável.**
 
----
+O Portal é uma plataforma de implantação auto-hospedada, projetada para operar em um único servidor. Ele compila aplicações a partir de repositórios Git usando o Railpack e as executa em contêineres Podman sem privilégios de root, sem exigir que o usuário configure Dockerfiles ou gerencie contêineres manualmente.
 
-## 📌 Sumário
+Criado com fluxos de trabalho assistidos por IA, contando com direção humana, decisões arquiteturais, integração e validação.
 
-- [Visão Geral](#-visão-geral)
-- [Tecnologias Utilizadas](#-tecnologias-utilizadas)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Pré-requisitos](#-pré-requisitos)
-- [Como Executar](#-como-executar)
-  - [1. Clonar o Repositório](#1-clonar-o-repositório)
-  - [2. Configurar e Executar o Backend](#2-configurar-e-executar-o-backend)
-  - [3. Executar o Frontend](#3-executar-o-frontend)
-- [Como Usar](#-como-usar)
-- [API Endpoints](#-api-endpoints)
+### Funcionalidades
 
----
+- **Implantação de Git para contêiner:** Detecta automaticamente o processo de compilação e gera uma imagem OCI.
+- **URLs compartilháveis e logs:** Acesse as aplicações implantadas e consulte os logs de compilação e execução.
+- **Gerenciamento do ciclo de vida:** Inicie, interrompa e exclua implantações, com parada automática por inatividade.
+- **Aplicação de políticas:** Lista de permissões de repositórios, cotas de implantação e controles para interromper toda a plataforma.
+- **Gerenciamento de segredos:** Entrada mascarada e criptografia por envelope para acesso pelo executor.
+- **Trilha de auditoria:** Registro de eventos somente para acréscimo, aplicado às operações de escrita.
 
-## 🌐 Visão Geral
+Atualmente, o Portal utiliza uma única identidade interna (`dev@portal.local`). Autenticação, acesso multiusuário e permissões baseadas em funções ainda não foram implementados.
 
-O **Portal** permite que desenvolvedores subam contêineres Docker preenchendo um formulário simples com as seguintes informações:
-- **Nome do Contêiner** (`container_name`): Identificador único do contêiner.
-- **Imagem Docker** (`container_image`): Nome e tag da imagem (ex: `nginx:alpine`, `redis:latest`).
-- **Porta Mapeada** (`port`): Mapeamento de porta no formato `host:container`.
+## Arquitetura
 
-A requisição é processada pela API FastAPI, que executa o comando `docker run` no ambiente host e retorna o ID do contêiner gerado ou uma mensagem de erro detalhada.
+O Portal separa a API do processo responsável por compilar e executar as aplicações. Ambos utilizam um banco de dados SQLite compartilhado.
 
----
+| Componente | Responsabilidade |
+| --- | --- |
+| `api/` | Aplicação FastAPI e API de implantação |
+| `runner/` | Execução de compilações, ciclo de vida dos contêineres e limpeza por inatividade |
+| `core/` | Lógica de domínio e aplicação de políticas |
+| `adapters/` | Persistência, criptografia e armazenamento de logs |
+| `frontend/` | Aplicação web SPA com React, Vite e Tailwind |
+| `ops/` | Provisionamento, serviços systemd, Caddy, firewall e manual operacional |
+| `tests/`, `e2e/` | Testes unitários, de integração e de interface |
 
-## 🛠️ Tecnologias Utilizadas
+O ambiente de desenvolvimento pode utilizar a mesma cadeia real de compilação e execução: Railpack, BuildKit e Podman sem privilégios de root.
 
-### **Frontend**
-- **HTML5**: Interface limpa baseada em formulários.
-- **JavaScript (ES6+)**: Manipulação do DOM e comunicação assíncrona com a API usando `fetch`.
+## Início rápido
 
-### **Backend**
-- **Python 3**: Linguagem de programação backend.
-- **FastAPI**: Framework web moderno e assíncrono para construção de APIs RESTful.
-- **Uvicorn**: Servidor web ASGI de alto desempenho.
-- **Pydantic**: Validação de esquema dos dados do payload JSON.
-- **Subprocess**: Módulo nativo para execução automatizada de comandos do Docker CLI no sistema operacional host.
+### Pré-requisitos
 
----
+- Python e Node.js/npm.
+- Railpack, BuildKit e Podman sem privilégios de root para implantações reais.
+- Daemon do BuildKit em funcionamento e Podman configurado.
 
-## 📁 Estrutura do Projeto
+Consulte [`ops/RUNBOOK.md`](ops/RUNBOOK.md) para conhecer os requisitos do ambiente de execução.
 
-```text
-.
-├── index.html     # Interface do usuário (Formulário web)
-├── script.js      # Lógica JS (Captura dos campos e requisição HTTP)
-├── main.py        # API FastAPI com endpoint para execução de contêineres
-└── README.md      # Documentação do repositório
-```
+### Execução local
 
----
-
-## 📋 Pré-requisitos
-
-Antes de iniciar a aplicação, certifique-se de possuir em seu ambiente:
-
-1. **Python 3.8+** instalado.
-2. **Docker Engine / Docker Desktop** rodando e com permissão de execução sem `sudo`.
-3. Gerenciador de pacotes **pip**.
-
----
-
-## 🚀 Como Executar
-
-### 1. Clonar o Repositório
+Crie o ambiente virtual Python e instale as dependências:
 
 ```bash
-git clone https://github.com/ShlomoChanoch/portal.git
-cd portal
+python -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
 ```
 
-### 2. Configurar e Executar o Backend
-
-1. Crie e ative um ambiente virtual:
-   ```bash
-   python -m venv .venv
-   
-   # Linux / macOS
-   source .venv/bin/activate
-
-   # Windows (PowerShell)
-   .\venv\Scripts\Activate.ps1
-   ```
-
-2. Instale as dependências:
-   ```bash
-   pip install fastapi uvicorn pydantic
-   ```
-
-3. Inicie o servidor FastAPI na porta **3000**:
-   ```bash
-   uvicorn main:app --reload --port 3000
-   ```
-   > 💡 O backend ficará acessível em: `http://127.0.0.1:3000`
-
-### 3. Executar o Frontend
-
-Abra o arquivo `index.html` diretamente em seu navegador web ou utilize um servidor estático simples com Python:
+Inicie a API:
 
 ```bash
-# Executar na raiz do projeto em um novo terminal
-python -m http.server 8000
-```
-Acesse no navegador: `http://localhost:8000` ou abra diretamente `index.html`.
-
----
-
-## 🎯 Como Usar
-
-1. Acesse a página do Portal no seu navegador.
-2. Preencha os campos solicitados:
-   - **Name**: Nome para o contêiner (ex: `meu-servidor`)
-   - **Image**: Imagem Docker (ex: `nginx:alpine`)
-   - **Port**: Porta para mapeamento (ex: `8080`)
-3. Clique no botão **Submit**.
-4. Em caso de sucesso, uma mensagem de confirmação exibirá o ID do contêiner criado.
-5. Verifique a execução no terminal executando:
-   ```bash
-   docker ps
-   ```
-
----
-
-## 🔌 API Endpoints
-
-### `POST /api/containers`
-
-Recebe a requisição para iniciar um contêiner no host.
-
-#### **Request Body** (`application/json`)
-```json
-{
-  "container_name": "meu-servidor",
-  "container_image": "nginx:alpine",
-  "port": "8080"
-}
+.venv/bin/python -m api.server
 ```
 
-#### **Response (Sucesso - 200 OK)**
-```json
-{
-  "status": "success",
-  "container_id": "c7a8b9d0e1f2..."
-}
+Em um segundo terminal, inicie o executor com o ambiente real de contêineres:
+
+```bash
+make runner-podman
 ```
 
-#### **Response (Erro - 200 OK)**
-```json
-{
-  "status": "error",
-  "message": "docker: Error response from daemon: Conflict. The container name "/meu-servidor" is already in use..."
-}
+Em um terceiro terminal, inicie o frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
+
+Acesse [http://localhost:5173](http://localhost:5173) e informe `demo` como URL do repositório para experimentar a aplicação de exemplo incluída no projeto.
+
+
