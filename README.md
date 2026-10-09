@@ -81,6 +81,6 @@ npm install
 npm run dev
 ```
 
-Acesse [http://localhost:5173](http://localhost:5173) e informe `demo` como URL do repositório para experimentar a aplicação de exemplo incluída no projeto.
+Acesse [http://localhost:5173](http://localhost:5173).
 
 
